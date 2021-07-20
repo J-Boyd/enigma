@@ -5,7 +5,7 @@ use enigma::ReflectorType;
 use enigma::Reflector;
 use enigma::Plugboard;
 
-use std::io;
+use std::io::{self, Write};
 
 fn main() {
     let stdin = io::stdin();
@@ -55,7 +55,9 @@ fn main() {
     println!();
 
     loop {
-        println!(">");
+        print!(">");
+
+        std::io::stdout().flush().unwrap();
 
         match stdin.read_line(&mut buffer) {
             Ok(_) => (),
