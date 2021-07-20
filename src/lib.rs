@@ -40,9 +40,11 @@ impl Enigma {
             }
 
             // Move the right hand rotor 1 position, and subsequent rotors if they are in the correct position.
-            if self.rotors[2].step() {
-                if self.rotors[1].step() {
-                    self.rotors[0].step();
+            let mut iter = self.rotors.iter_mut().rev();
+
+            while let Some(r) = iter.next() {
+                if !r.step(){
+                    break;
                 }
             }
 
@@ -59,15 +61,21 @@ impl Enigma {
     }
 
     fn rotor_scramble(&mut self, input: usize) -> usize {
-        let mut result = self.rotors[2].scramble_left(input);
-        result = self.rotors[1].scramble_left(result);
-        result = self.rotors[0].scramble_left(result);
+        let mut result = input;
+
+        // Scramble from right to left.
+        let mut rev_iter = self.rotors.iter_mut().rev();
+        while let Some(rotor) = rev_iter.next() {
+            result = rotor.scramble_left(result);
+        }
 
         result = self.reflector.scramble(result);
-    
-        result = self.rotors[0].scramble_right(result);
-        result = self.rotors[1].scramble_right(result);
-        result = self.rotors[2].scramble_right(result);
+
+        // Scramble from left to right.
+        let mut iter = self.rotors.iter_mut();
+        while let Some(rotor) = iter.next() {
+            result = rotor.scramble_right(result);
+        }
 
         result
     }
