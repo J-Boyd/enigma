@@ -1,7 +1,7 @@
 mod rotor;
 mod reflector;
 mod plugboard;
-mod utils;
+pub mod utils;
 mod error;
 
 pub use crate::rotor::Rotor;
