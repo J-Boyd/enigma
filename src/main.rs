@@ -28,7 +28,7 @@ fn main() {
                         .long("rotors")
                         .value_name("ROTORS")
                         .possible_values(&["I", "II", "III", "IV", "V", "VI", "VII", "VIII"])
-                        .help("Sets the rotors in use, starting in the leftmost position.")
+                        .help("Sets the rotor order (Walzenlage), starting in the leftmost position.")
                         .takes_value(true)
                         .multiple_occurrences(false)
                         .multiple_values(true)
@@ -36,20 +36,21 @@ fn main() {
                         .max_values(3)
                         .required(true))
                     .arg(Arg::new("rings")
-                        .long("rings")
-                        .value_name("RINGS")
-                        .help("Sets the ring setting for the rotors. Valid values are numbers in the range 1 to 26.")
+                        .short('s')
+                        .long("ring")
+                        .value_name("SETTING")
+                        .help("Sets the ring settings for the rotors (Ringstellung). Valid values are numbers in the range 1 to 26.")
                         .takes_value(true)
                         .multiple_occurrences(false)
                         .multiple_values(true)
                         .min_values(3)
                         .max_values(3)
                         .required(true))
-                    .arg(Arg::new("positions")
-                        .short('p')
-                        .long("positions")
-                        .value_name("POSITIONS")
-                        .help("Sets the intial positions for the rotors. Valid values are letters in the range A to Z.")
+                    .arg(Arg::new("key")
+                        .short('k')
+                        .long("key")
+                        .value_name("KEY")
+                        .help("Sets the intial positions for the rotors (Grundstellung/Kenngruppen). Valid values are letters in the range A to Z.")
                         .takes_value(true)
                         .multiple_occurrences(false)
                         .multiple_values(true)
@@ -57,11 +58,11 @@ fn main() {
                         .max_values(3)
                         .required(true))
                     .arg(Arg::new("plugs")
-                        .short('s')
+                        .short('p')
                         .long("plugs")
                         .value_name("PLUGS")
-                        .help("Adds a set of plugs to the plugboard.")
-                        .long_help("Adds a set of plugs to the plugboard. Valid values are pairs of letters such as 'AL' for linking the letter 'A' to the letter 'L'.")
+                        .help("Sets the plug connections on the plugboard (Steckerverbindungen).")
+                        .long_help("Sets the plug connections on the plugboard (Steckerverbindungen). Valid values are pairs of letters such as 'AL' for linking the letter 'A' to the letter 'L'.")
                         .takes_value(true)
                         .multiple_occurrences(false)
                         .multiple_values(true)
@@ -73,7 +74,7 @@ fn main() {
 
     let rotor_args: Vec<&str> = matches.values_of("rotors").unwrap().collect();
     let ring_settings: Vec<&str> = matches.values_of("rings").unwrap().collect();
-    let positions: Vec<&str> = matches.values_of("positions").unwrap().collect();
+    let key: Vec<&str> = matches.values_of("key").unwrap().collect();
 
     let plug_args = match matches.values_of("plugs") {
         Some(p) => p.collect(),
@@ -83,7 +84,7 @@ fn main() {
     println!("Reflector: {:?}", reflector);
     println!("Rotors: {:?}", rotor_args);
     println!("Ring Settings: {:?}", ring_settings);
-    println!("Positions: {:?}", positions);
+    println!("Key: {:?}", key);
     println!("Plugs: {:?}", plug_args);
 
     let mut rotors: Vec<Rotor> = Vec::new();
@@ -91,7 +92,7 @@ fn main() {
     for i in 0..rotor_args.len() {
 
         let rotor_type = Rotor::get_rotor_type_from_string(&rotor_args[i]).unwrap();
-        let position = positions[i].chars().nth(0).unwrap();
+        let position = key[i].chars().nth(0).unwrap();
         let ring = ring_settings[i].parse::<usize>().unwrap();
 
         match Rotor::new(rotor_type, position, ring) {
