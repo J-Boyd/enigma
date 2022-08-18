@@ -5,17 +5,8 @@ pub fn get_position_from_char(a: char) -> Result<usize, EnigmaError> {
         return Err(EnigmaError::new(ErrorKind::InputError(), format!("Expected uppercase ASCII! Got {}", a)));
     }
 
-    let mut position = 0;
-
-    for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars() {
-        if a == c {
-            return Ok(position);
-        }
-
-        position += 1;
-    }
-
-    Err(EnigmaError::new(ErrorKind::InputError(), format!("Unable to convert char {} into a position!", a)))
+    let position: usize = a as usize - 65;
+    Ok(position)
 }
 
 pub fn get_char_from_position(position: usize) -> Result<char, EnigmaError> {
@@ -23,11 +14,10 @@ pub fn get_char_from_position(position: usize) -> Result<char, EnigmaError> {
         return Err(EnigmaError::new(ErrorKind::InputError(), format!("Expected position in the range of 0 to 25! Got {}", position)));
     }
 
-    if let Some(c) = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().nth(position) {
-        return Ok(c);
+    match char::from_u32(position as u32 + 65) {
+        Some(c) => Ok(c),
+        None => Err(EnigmaError::new(ErrorKind::InputError(), format!("Unable to convert position {} into a char!", position))),
     }
-
-    Err(EnigmaError::new(ErrorKind::InputError(), format!("Unable to convert position {} into a char!", position)))
 }
 
 #[cfg(test)]
