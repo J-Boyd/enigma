@@ -1,4 +1,4 @@
-use crate::error::{EnigmaError, ErrorKind};
+use crate::error::Error;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ReflectorType {
@@ -23,7 +23,7 @@ impl Reflector {
         }
     }
 
-    pub fn get_reflector_type_from_string(reflector_type: &str) -> Result<ReflectorType, EnigmaError> {
+    pub fn get_reflector_type_from_string(reflector_type: &str) -> Result<ReflectorType, Error> {
         let lower = reflector_type.to_ascii_lowercase();
 
         let t = match lower.as_str() {
@@ -35,7 +35,7 @@ impl Reflector {
             "thinb" => ReflectorType::ThinB,
             "thinc" => ReflectorType::ThinC,
             "etw" => ReflectorType::ETW,
-            _ => return Err(EnigmaError::new(ErrorKind::ReflectorError(), format!("Couldn't convert {} to a reflector type!", reflector_type))),
+            _ => return Err(Error::ReflectorError), // format!("Couldn't convert {} to a reflector type!", reflector_type))),
         };
 
         Ok(t)
@@ -105,8 +105,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
     fn test_get_reflector_type_from_string_invalid() {
-        Reflector::get_reflector_type_from_string("blah").unwrap();
+        assert!(Reflector::get_reflector_type_from_string("blah").is_err());
     }
 }

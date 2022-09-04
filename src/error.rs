@@ -1,44 +1,43 @@
-use std::{error::Error, fmt};
+use std::{error::Error as StdError, fmt::{Display, Formatter}};
 
 #[derive(Debug)]
-pub struct EnigmaError {
-    pub kind: ErrorKind,
-    pub description: String,
-}
-
-impl EnigmaError {
-    pub fn new(kind: ErrorKind, description: String) -> EnigmaError {
-        EnigmaError {
-            kind,
-            description
-        }
-    }
-}
-
-impl Error for EnigmaError {
-
-}
-
-impl fmt::Display for EnigmaError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.kind {
-            ErrorKind::RotorError() => write!(f, "Rotor Error: {}", self.description),
-            ErrorKind::ReflectorError() => write!(f, "Reflector Error: {}", self.description),
-            ErrorKind::PlugboardError() => write!(f, "Plugboard Error: {}", self.description),
-            ErrorKind::InputError() => write!(f, "Input Error: {}", self.description),
-            ErrorKind::IOError(err) => write!(f, "IO Error: {}", err),
-            ErrorKind::Exit() => write!(f, "Exit"),
-        }
-    }
-}
-
-// TODO - Consider making these more fine grain and get rid of description.
-#[derive(Debug)]
-pub enum ErrorKind {
-    RotorError(),
-    ReflectorError(),
-    PlugboardError(),
-    InputError(),
+pub enum Error {
+    RotorError,
+    ReflectorError,
+    PlugboardError,
+    InputError,
     IOError(std::io::Error),
-    Exit(),
+    Exit,
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            Error::RotorError => write!(f, "Rotor Error!"),
+            Error::ReflectorError => write!(f, "Reflector Error!"),
+            Error::PlugboardError => write!(f, "Plugboard Error!"),
+            Error::InputError => write!(f, "Input Error!"),
+            Error::IOError(source) => write!(f, "IO Error!\n\nCause: {}", source),
+            Error::Exit => write!(f, "Exit"),
+        }
+    }
+}
+
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        match &self {
+            Error::RotorError => None,
+            Error::ReflectorError => None,
+            Error::PlugboardError => None,
+            Error::InputError => None,
+            Error::IOError(source) => Some(source),
+            Error::Exit => None,
+        }
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(err: std::io::Error) -> Self {
+        Error::IOError(err)
+    }
 }

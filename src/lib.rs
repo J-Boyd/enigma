@@ -4,6 +4,8 @@ mod plugboard;
 pub mod utils;
 mod error;
 
+use anyhow::{Context, Result};
+
 pub use crate::rotor::Rotor;
 pub use crate::rotor::RotorType;
 pub use crate::reflector::Reflector;
@@ -26,9 +28,10 @@ impl Enigma {
         }
     }
 
-    pub fn encrypt(&mut self, input: &str) -> Result<String, EnigmaError> {
+    pub fn encrypt(&mut self, input: &str) -> Result<String> {
         if !input.is_ascii() {
-            return Err(EnigmaError::new(ErrorKind::InputError(), String::from("Input is not ASCII")));
+            return Err(Error::InputError)//.context("Input is not ASCII"); //, String::from("Input is not ASCII")));
+            .with_context(|| format!("Input is not upper case ASCII: {}", input))?;
         }
 
         let mut result = String::with_capacity(input.len());

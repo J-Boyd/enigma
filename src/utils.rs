@@ -1,22 +1,23 @@
-use crate::error::{EnigmaError, ErrorKind};
+use crate::error::{Error};
+use anyhow::{Context, Result};
 
-pub fn get_position_from_char(a: char) -> Result<usize, EnigmaError> {
+pub fn get_position_from_char(a: char) -> Result<usize> {
     if !a.is_ascii_uppercase() {
-        return Err(EnigmaError::new(ErrorKind::InputError(), format!("Expected uppercase ASCII! Got {}", a)));
+        return Err(Error::InputError).context(format!("Expected uppercase ASCII! Got {}", a)); //format!("Expected uppercase ASCII! Got {}", a)));
     }
 
     let position: usize = a as usize - 65;
     Ok(position)
 }
 
-pub fn get_char_from_position(position: usize) -> Result<char, EnigmaError> {
+pub fn get_char_from_position(position: usize) -> Result<char> {
     if position > 25 {
-        return Err(EnigmaError::new(ErrorKind::InputError(), format!("Expected position in the range of 0 to 25! Got {}", position)));
+        return Err(Error::InputError).context(format!("Expected position in the range of 0 to 25! Got {}", position)); // format!("Expected position in the range of 0 to 25! Got {}", position)));
     }
 
     match char::from_u32(position as u32 + 65) {
         Some(c) => Ok(c),
-        None => Err(EnigmaError::new(ErrorKind::InputError(), format!("Unable to convert position {} into a char!", position))),
+        None => Err(Error::InputError).context(format!("Unable to convert position {} into a char!", position)), // format!("Unable to convert position {} into a char!", position))),
     }
 }
 
@@ -55,15 +56,13 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
     fn test_get_position_from_char_lowercase() {
-        get_position_from_char('a').unwrap();
+        assert!(get_position_from_char('a').is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_get_position_from_char_not_char() {
-        get_position_from_char('5').unwrap();
+        assert!(get_position_from_char('5').is_err());
     }
 
     #[test]
@@ -97,8 +96,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
     fn test_get_char_from_position_out_of_range() {
-        get_char_from_position(26).unwrap();
+        assert!(get_char_from_position(26).is_err());
     }
 }

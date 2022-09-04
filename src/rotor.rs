@@ -1,5 +1,6 @@
 use crate::utils;
-use crate::error::{EnigmaError, ErrorKind};
+use crate::error::{Error};
+use anyhow::{Context, Result};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum RotorType {
@@ -27,12 +28,12 @@ pub struct Rotor {
 }
 
 impl Rotor {
-    pub fn new(rotor_type: RotorType, position: char, ring_setting: usize) -> Result<Rotor, EnigmaError> {
+    pub fn new(rotor_type: RotorType, position: char, ring_setting: usize) -> Result<Rotor> {
         let wiring = Rotor::get_rotor_wiring(&rotor_type);
         let wiring_inverse = Rotor::get_rotor_wiring_inverse(&wiring);
 
         if ring_setting < 1 || ring_setting > 26 {
-            return Err(EnigmaError::new(ErrorKind::RotorError(), format!("Ring setting must be in the range 1 to 26 (inclusive)! Got {}.", ring_setting)));
+            return Err(Error::RotorError).context(format!("Invalid ring setting {}. Must be in the range 1 to 26 (inclusive).", ring_setting));
         }
 
         let rotor = Rotor {
@@ -83,7 +84,7 @@ impl Rotor {
         wiring_inverse
     }
 
-    pub fn get_rotor_type_from_string(rotor_type: &str) -> Result<RotorType, EnigmaError> {
+    pub fn get_rotor_type_from_string(rotor_type: &str) -> Result<RotorType> {
         let lower = rotor_type.to_ascii_lowercase();
 
         let t = match lower.as_str() {
@@ -95,7 +96,7 @@ impl Rotor {
             "vi" => RotorType::VI,
             "vii" => RotorType::VII,
             "viii" => RotorType::VIII,
-            _ => return Err(EnigmaError::new(ErrorKind::RotorError(), format!("Couldn't convert {} to a rotor type!", rotor_type))),
+            _ => return Err(Error::RotorError).context(format!("Invalid rotor type {}.", rotor_type)),
         };
 
         Ok(t)
@@ -232,15 +233,13 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
     fn test_rotor_invalid_ring_setting_low() {
-        Rotor::new(RotorType::I, 'A', 0).unwrap();
+        assert!(Rotor::new(RotorType::I, 'A', 0).is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_rotor_invalid_ring_setting_high() {
-        Rotor::new(RotorType::I, 'A', 27).unwrap();
+        assert!(Rotor::new(RotorType::I, 'A', 27).is_err());
     }
 
     #[test]
@@ -271,8 +270,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
     fn test_get_rotor_type_from_string_invalid() {
-        Rotor::get_rotor_type_from_string("blah").unwrap();
+        assert!(Rotor::get_rotor_type_from_string("blah").is_err());
     }
 }

@@ -4,11 +4,10 @@ use enigma::Reflector;
 use enigma::Plugboard;
 
 use std::io::{self, Write};
-
-extern crate clap;
 use clap::{Arg, App};
+use anyhow::Result;
 
-fn main() {
+fn main() -> Result<()> {
     let matches = App::new("Enigma")
                     .version("0.1")
                     .author("Jonathan Boyd")
@@ -95,10 +94,8 @@ fn main() {
         let position = key[i].chars().nth(0).unwrap();
         let ring = ring_settings[i].parse::<usize>().unwrap();
 
-        match Rotor::new(rotor_type, position, ring) {
-            Ok(r) => rotors.push(r),
-            Err(err) => panic!("{}", err),
-        };
+        let rotor = Rotor::new(rotor_type, position, ring)?;
+        rotors.push(rotor);
     }
 
     let mut plugs: Vec<(char, char)> = Vec::new();
@@ -117,22 +114,19 @@ fn main() {
     loop {
         print!(">");
 
-        std::io::stdout().flush().unwrap();
+        std::io::stdout().flush()?;
 
-        match stdin.read_line(&mut buffer) {
-            Ok(_) => (),
-            Err(err) => panic!("Failed to read console input! Error: {}", err),
-        }
+        stdin.read_line(&mut buffer)?;
 
         if buffer.trim().eq("exit") {
             break;
         }
 
-        match enigma.encrypt(buffer.trim()) {
-            Ok(r) => println!("{}", r),
-            Err(err) => eprintln!("[ERROR]: {}", err),
-        }
+        let output = enigma.encrypt(buffer.trim())?;
+        println!("{}", output);
 
         buffer.clear();
     }
+
+    Ok(())
 }
