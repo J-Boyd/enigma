@@ -33,7 +33,7 @@ impl Rotor {
         let wiring_inverse = Rotor::get_rotor_wiring_inverse(&wiring);
 
         if ring_setting < 1 || ring_setting > 26 {
-            return Err(Error::RotorError).context(format!("Invalid ring setting {}. Must be in the range 1 to 26 (inclusive).", ring_setting));
+            return Err(Error::RotorError).with_context(|| { format!("Invalid ring setting {}. Must be in the range 1 to 26 (inclusive).", ring_setting) });
         }
 
         let rotor = Rotor {
@@ -96,7 +96,7 @@ impl Rotor {
             "vi" => RotorType::VI,
             "vii" => RotorType::VII,
             "viii" => RotorType::VIII,
-            _ => return Err(Error::RotorError).context(format!("Invalid rotor type {}.", rotor_type)),
+            _ => return Err(Error::RotorError).with_context(|| { format!("Invalid rotor type {}.", rotor_type) }),
         };
 
         Ok(t)

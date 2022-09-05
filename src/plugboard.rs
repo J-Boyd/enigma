@@ -12,18 +12,18 @@ impl Plugboard {
 
         for plug in plugs.iter() {
             if plug.0 == plug.1 {
-                return Err(Error::PlugboardError).context(format!("Cannot connect plug {} to {}!", plug.0, plug.1));
+                return Err(Error::PlugboardError).with_context(|| { format!("Cannot connect plug {} to {}!", plug.0, plug.1) });
             }
 
             let p = (utils::get_position_from_char(plug.0)?, utils::get_position_from_char(plug.1)?);
 
             for positions in plug_positions.iter() {
                 if p.0 == positions.0 || p.0 == positions.1 {
-                    return Err(Error::PlugboardError).context(format!("Cannot connect plug {}, already in use!", plug.0));
+                    return Err(Error::PlugboardError).with_context(|| { format!("Cannot connect plug {}, already in use!", plug.0) });
                 }
 
                 if p.1 == positions.0 || p.1 == positions.1 {
-                    return Err(Error::PlugboardError).context(format!("Cannot connect plug {}, already in use!", plug.1));
+                    return Err(Error::PlugboardError).with_context(|| { format!("Cannot connect plug {}, already in use!", plug.1) });
                 }
             }
 

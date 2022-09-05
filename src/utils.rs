@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 
 pub fn get_position_from_char(a: char) -> Result<usize> {
     if !a.is_ascii_uppercase() {
-        return Err(Error::InputError).context(format!("Expected uppercase ASCII! Got {}", a)); //format!("Expected uppercase ASCII! Got {}", a)));
+        return Err(Error::InputError).with_context(|| { format!("Expected uppercase ASCII! Got {}", a) });
     }
 
     let position: usize = a as usize - 65;
@@ -12,12 +12,12 @@ pub fn get_position_from_char(a: char) -> Result<usize> {
 
 pub fn get_char_from_position(position: usize) -> Result<char> {
     if position > 25 {
-        return Err(Error::InputError).context(format!("Expected position in the range of 0 to 25! Got {}", position)); // format!("Expected position in the range of 0 to 25! Got {}", position)));
+        return Err(Error::InputError).with_context(|| { format!("Expected position in the range of 0 to 25! Got {}", position) });
     }
 
     match char::from_u32(position as u32 + 65) {
         Some(c) => Ok(c),
-        None => Err(Error::InputError).context(format!("Unable to convert position {} into a char!", position)), // format!("Unable to convert position {} into a char!", position))),
+        None => Err(Error::InputError).with_context(|| { format!("Unable to convert position {} into a char!", position) }),
     }
 }
 

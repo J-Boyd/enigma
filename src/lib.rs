@@ -30,8 +30,7 @@ impl Enigma {
 
     pub fn encrypt(&mut self, input: &str) -> Result<String> {
         if !input.is_ascii() {
-            return Err(Error::InputError)//.context("Input is not ASCII"); //, String::from("Input is not ASCII")));
-            .with_context(|| format!("Input is not upper case ASCII: {}", input))?;
+            return Err(Error::InputError).with_context(|| format!("Input is not upper case ASCII: {}", input))?;
         }
 
         let mut result = String::with_capacity(input.len());
