@@ -35,7 +35,7 @@ impl Reflector {
             "thinb" => ReflectorType::ThinB,
             "thinc" => ReflectorType::ThinC,
             "etw" => ReflectorType::ETW,
-            _ => return Err(Error::ReflectorError), // format!("Couldn't convert {} to a reflector type!", reflector_type))),
+            _ => return Err(Error::ReflectorError),
         };
 
         Ok(t)
