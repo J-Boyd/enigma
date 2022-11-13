@@ -178,6 +178,17 @@ impl EnigmaGui {
         }).response
     }
 
+    fn update_selected_plugs(&mut self) {
+        // Update the current characters in the plug selection comboboxes to an available letter.
+        if let Some(c) = self.next_available_plug(false) {
+            self.current_plug_pair.0 = c;
+        }
+
+        if let Some(c) = self.next_available_plug(true) {
+            self.current_plug_pair.1 = c;
+        }
+    }
+
     fn add_plugboard(&mut self, ui: &mut Ui) -> Response {
         ui.group(|ui| {
             ui.vertical_centered(|ui| {
@@ -211,30 +222,30 @@ impl EnigmaGui {
                     });
 
                     if ui.button("Add Pair").clicked() {
-                        self.plugs.push(self.current_plug_pair);
-
-                        // Update the current characters in the plug selection comboboxes to an available letter.
-                        if let Some(c) = self.next_available_plug(false) {
-                            self.current_plug_pair.0 = c;
+                        // We can't have more than 13 pairs.
+                        if self.plugs.len() < 13 {
+                            self.plugs.push(self.current_plug_pair);
                         }
 
-                        if let Some(c) = self.next_available_plug(true) {
-                            self.current_plug_pair.1 = c;
-                        }
+                        self.update_selected_plugs();
                     }
                 });
 
                 let mut clicked_pairs: Vec<(char, char)> = Vec::new();
 
                 for p in &self.plugs {
-                    if ui.selectable_label(false, format!("{:?}", p)).clicked() {
+                    if ui.button(format!("{0} {1}", p.0, p.1)).clicked() {
                         clicked_pairs.push(*p);
                     }
                 }
 
                 // Remove any clicked on pairs from our vec.
-                for p in clicked_pairs {
-                    self.remove_plug_pair(p);
+                if !clicked_pairs.is_empty() {
+                    for p in clicked_pairs {
+                        self.remove_plug_pair(p);
+                    }
+
+                    self.update_selected_plugs();
                 }
             });
         }).response
@@ -270,7 +281,11 @@ impl App for EnigmaGui {
             }
 
             ui.heading("Output");
-            ui.label(self.output.as_str());
+            if ui.selectable_label(false, self.output.as_str())
+                .on_hover_text(String::from("Click to copy to clipboard"))
+                .clicked() {
+                    ui.output().copied_text = self.output.clone();
+                }
         });
     }
 }
