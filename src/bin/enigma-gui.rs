@@ -84,6 +84,20 @@ impl EnigmaGui {
         None
     }
 
+    fn remove_plug_pair(&mut self, pair: (char, char)) {
+        let mut index: Option<usize> = None;
+
+        for i in 0..self.plugs.len() {
+            if pair == self.plugs[i] {
+                index = Some(i);
+            }
+        }
+
+        if let Some(i) = index {
+            self.plugs.remove(i);
+        }
+    }
+
     fn add_reflector(&mut self, ui: &mut Ui) -> Response {
         ui.group(|ui| {
             ui.vertical(|ui| {
@@ -210,10 +224,17 @@ impl EnigmaGui {
                     }
                 });
 
-                for i in 0..self.plugs.len() {
-                    if ui.selectable_label(false, format!("{:?}", self.plugs[i])).clicked() {
-                        // TODO - remove from self.plugs
+                let mut clicked_pairs: Vec<(char, char)> = Vec::new();
+
+                for p in &self.plugs {
+                    if ui.selectable_label(false, format!("{:?}", p)).clicked() {
+                        clicked_pairs.push(*p);
                     }
+                }
+
+                // Remove any clicked on pairs from our vec.
+                for p in clicked_pairs {
+                    self.remove_plug_pair(p);
                 }
             });
         }).response
