@@ -84,6 +84,30 @@ impl EnigmaGui {
         None
     }
 
+    fn add_reflector(&mut self, ui: &mut Ui) -> Response {
+        ui.group(|ui| {
+            ui.vertical(|ui| {
+                ui.label("Reflector");
+
+                ui.horizontal(|ui| {
+                    ui.label("Type:");
+                    egui::ComboBox::from_id_source("reflector-combobox")
+                        .selected_text(format!("{:?}", self.reflector_type))
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(&mut self.reflector_type, ReflectorType::Beta, "Beta");
+                            ui.selectable_value(&mut self.reflector_type, ReflectorType::Gamma, "Gamma");
+                            ui.selectable_value(&mut self.reflector_type, ReflectorType::A, "A");
+                            ui.selectable_value(&mut self.reflector_type, ReflectorType::B, "B");
+                            ui.selectable_value(&mut self.reflector_type, ReflectorType::C, "C");
+                            ui.selectable_value(&mut self.reflector_type, ReflectorType::ThinB, "ThinB");
+                            ui.selectable_value(&mut self.reflector_type, ReflectorType::ThinC, "ThinC");
+                            ui.selectable_value(&mut self.reflector_type, ReflectorType::ETW, "ETW");
+                        });
+                });
+            });
+        }).response
+    }
+
     fn add_rotor(&mut self, ui: &mut Ui, rotor_index: usize) -> Response {
         ui.group(|ui| {
             ui.vertical(|ui| {
@@ -123,6 +147,77 @@ impl EnigmaGui {
             });
         }).response
     }
+
+    fn add_rotors(&mut self, ui: &mut Ui) -> Response {
+        ui.group(|ui| { 
+            ui.vertical(|ui| {
+                ui.vertical_centered(|ui| {
+                    ui.label("Rotors");
+                });
+
+                ui.horizontal(|ui| {
+                    self.add_rotor(ui, 0);
+                    self.add_rotor(ui, 1);
+                    self.add_rotor(ui, 2);
+                });
+            });
+        }).response
+    }
+
+    fn add_plugboard(&mut self, ui: &mut Ui) -> Response {
+        ui.group(|ui| {
+            ui.vertical_centered(|ui| {
+                ui.label("Plugboard");
+            });
+
+            ui.horizontal(|ui| {
+                ui.group(|ui| {
+                    ui.horizontal(|ui| {
+                        egui::ComboBox::from_id_source("plugboard-combobox1")
+                            .selected_text(self.current_plug_pair.0.to_string())
+                            .width(25.0)
+                            .show_ui(ui, |ui| {
+                                for c in 'A'..='Z' {
+                                    if ui.add_enabled(self.is_plug_available(c), egui::SelectableLabel::new(false, c.to_string())).clicked() {
+                                        self.current_plug_pair.0 = c;
+                                    }
+                                }
+                            });
+
+                        egui::ComboBox::from_id_source("plugboard-combobox2")
+                            .selected_text(self.current_plug_pair.1.to_string())
+                            .width(25.0)
+                            .show_ui(ui, |ui| {
+                                for c in 'A'..='Z' {
+                                    if ui.add_enabled(self.is_plug_available(c), egui::SelectableLabel::new(false, c.to_string())).clicked() {
+                                        self.current_plug_pair.1 = c;
+                                    }
+                                }
+                            });
+                    });
+
+                    if ui.button("Add Pair").clicked() {
+                        self.plugs.push(self.current_plug_pair);
+
+                        // Update the current characters in the plug selection comboboxes to an available letter.
+                        if let Some(c) = self.next_available_plug(false) {
+                            self.current_plug_pair.0 = c;
+                        }
+
+                        if let Some(c) = self.next_available_plug(true) {
+                            self.current_plug_pair.1 = c;
+                        }
+                    }
+                });
+
+                for i in 0..self.plugs.len() {
+                    if ui.selectable_label(false, format!("{:?}", self.plugs[i])).clicked() {
+                        // TODO - remove from self.plugs
+                    }
+                }
+            });
+        }).response
+    }
 }
 
 impl App for EnigmaGui {
@@ -133,91 +228,11 @@ impl App for EnigmaGui {
             });
 
             ui.horizontal(|ui| {
-                ui.group(|ui| {
-                    ui.vertical(|ui| {
-                        ui.label("Reflector");
-
-                        ui.horizontal(|ui| {
-                            ui.label("Type:");
-                            egui::ComboBox::from_id_source("reflector-combobox")
-                                .selected_text(format!("{:?}", self.reflector_type))
-                                .show_ui(ui, |ui| {
-                                    ui.selectable_value(&mut self.reflector_type, ReflectorType::Beta, "Beta");
-                                    ui.selectable_value(&mut self.reflector_type, ReflectorType::Gamma, "Gamma");
-                                    ui.selectable_value(&mut self.reflector_type, ReflectorType::A, "A");
-                                    ui.selectable_value(&mut self.reflector_type, ReflectorType::B, "B");
-                                    ui.selectable_value(&mut self.reflector_type, ReflectorType::C, "C");
-                                    ui.selectable_value(&mut self.reflector_type, ReflectorType::ThinB, "ThinB");
-                                    ui.selectable_value(&mut self.reflector_type, ReflectorType::ThinC, "ThinC");
-                                    ui.selectable_value(&mut self.reflector_type, ReflectorType::ETW, "ETW");
-                                });
-                        });
-                    });
-                });
-
-                ui.group(|ui| { 
-                    ui.vertical(|ui| {
-                        ui.vertical_centered(|ui| {
-                            ui.label("Rotors");
-                        });
-
-                        ui.horizontal(|ui| {
-                            self.add_rotor(ui, 0);
-                            self.add_rotor(ui, 1);
-                            self.add_rotor(ui, 2);
-                        });
-                    });
-                });
+                self.add_reflector(ui);
+                self.add_rotors(ui);
             });
 
-            ui.group(|ui| {
-                ui.vertical_centered(|ui| {
-                    ui.label("Plugboard");
-                });
-
-                ui.horizontal(|ui| {
-                    ui.group(|ui| {
-                        ui.horizontal(|ui| {
-                            egui::ComboBox::from_id_source("plugboard-combobox1")
-                                .selected_text(self.current_plug_pair.0.to_string())
-                                .show_ui(ui, |ui| {
-                                    for c in 'A'..='Z' {
-                                        if ui.add_enabled(self.is_plug_available(c), egui::SelectableLabel::new(false, c.to_string())).clicked() {
-                                            self.current_plug_pair.0 = c;
-                                        }
-                                    }
-                                });
-
-                            egui::ComboBox::from_id_source("plugboard-combobox2")
-                                .selected_text(self.current_plug_pair.1.to_string())
-                                .show_ui(ui, |ui| {
-                                    for c in 'A'..='Z' {
-                                        if ui.add_enabled(self.is_plug_available(c), egui::SelectableLabel::new(false, c.to_string())).clicked() {
-                                            self.current_plug_pair.1 = c;
-                                        }
-                                    }
-                                });
-                        });
-
-                        if ui.button("Add Pair").clicked() {
-                            self.plugs.push(self.current_plug_pair);
-
-                            // Update the current characters in the plug selection comboboxes to an available letter.
-                            if let Some(c) = self.next_available_plug(false) {
-                                self.current_plug_pair.0 = c;
-                            }
-
-                            if let Some(c) = self.next_available_plug(true) {
-                                self.current_plug_pair.1 = c;
-                            }
-                        }
-                    });
-                    
-                    for p in &self.plugs {
-                        ui.label(format!("{:?}", p));
-                    }
-                });
-            });
+            self.add_plugboard(ui);
 
             ui.vertical_centered(|ui| {
                 if ui.button("Apply Settings").clicked() {
