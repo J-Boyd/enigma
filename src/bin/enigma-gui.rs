@@ -259,12 +259,18 @@ impl App for EnigmaGui {
                 ui.heading("Settings");
             });
 
+            ui.add_space(10.0);
+
             ui.horizontal(|ui| {
                 self.add_reflector(ui);
                 self.add_rotors(ui);
             });
 
+            ui.add_space(10.0);
+
             self.add_plugboard(ui);
+
+            ui.add_space(10.0);
 
             ui.vertical_centered(|ui| {
                 if ui.button("Apply Settings").clicked() {
@@ -274,18 +280,22 @@ impl App for EnigmaGui {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Input");
+            ui.add_space(20.0);
 
-            if ui.add_sized([ui.available_width(), 0.0], egui::TextEdit::singleline(&mut self.input)).lost_focus() {
-                self.output = self.enigma.encrypt(&self.input.to_uppercase()).unwrap();
-            }
+            ui.group(|ui| {
+                ui.heading("Input");
 
-            ui.heading("Output");
-            if ui.selectable_label(false, self.output.as_str())
-                .on_hover_text(String::from("Click to copy to clipboard"))
-                .clicked() {
-                    ui.output().copied_text = self.output.clone();
+                if ui.add_sized([ui.available_width(), 0.0], egui::TextEdit::singleline(&mut self.input)).lost_focus() {
+                    self.output = self.enigma.encrypt(&self.input.to_uppercase()).unwrap();
                 }
+            });
+
+            ui.add_space(20.0);
+
+            ui.group(|ui| {
+                ui.heading("Output");
+                ui.add_sized(ui.available_size(), egui::TextEdit::singleline(&mut self.output.as_str()));
+            });
         });
     }
 }
