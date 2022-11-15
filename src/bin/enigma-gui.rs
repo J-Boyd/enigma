@@ -57,7 +57,7 @@ impl EnigmaGui {
 
     fn is_plug_available(&self, c: char) -> bool {
         for p in &self.plugs {
-            if p[0] == c || p[1] == c {
+            if p.contains(&c) {
                 return false;
             }
         }
@@ -189,6 +189,19 @@ impl EnigmaGui {
         }
     }
 
+    fn add_plugboard_combobox(&mut self, ui: &mut Ui, index: usize) -> Response {
+        egui::ComboBox::from_id_source(format!("plugboard-combobox{index}"))
+            .selected_text(self.current_plug_pair[index].to_string())
+            .width(25.0)
+            .show_ui(ui, |ui| {
+                for c in 'A'..='Z' {
+                    if ui.add_enabled(self.is_plug_available(c), egui::SelectableLabel::new(false, c.to_string())).clicked() {
+                        self.current_plug_pair[index] = c;
+                    }
+                }
+            }).response
+    }
+
     fn add_plugboard(&mut self, ui: &mut Ui) -> Response {
         ui.group(|ui| {
             ui.vertical_centered(|ui| {
@@ -198,27 +211,8 @@ impl EnigmaGui {
             ui.horizontal(|ui| {
                 ui.group(|ui| {
                     ui.horizontal(|ui| {
-                        egui::ComboBox::from_id_source("plugboard-combobox1")
-                            .selected_text(self.current_plug_pair[0].to_string())
-                            .width(25.0)
-                            .show_ui(ui, |ui| {
-                                for c in 'A'..='Z' {
-                                    if ui.add_enabled(self.is_plug_available(c), egui::SelectableLabel::new(false, c.to_string())).clicked() {
-                                        self.current_plug_pair[0] = c;
-                                    }
-                                }
-                            });
-
-                        egui::ComboBox::from_id_source("plugboard-combobox2")
-                            .selected_text(self.current_plug_pair[1].to_string())
-                            .width(25.0)
-                            .show_ui(ui, |ui| {
-                                for c in 'A'..='Z' {
-                                    if ui.add_enabled(self.is_plug_available(c), egui::SelectableLabel::new(false, c.to_string())).clicked() {
-                                        self.current_plug_pair[1] = c;
-                                    }
-                                }
-                            });
+                        self.add_plugboard_combobox(ui, 0);
+                        self.add_plugboard_combobox(ui, 1);
                     });
 
                     if ui.button("Add Pair").clicked() {
@@ -259,20 +253,18 @@ impl App for EnigmaGui {
                 ui.vertical_centered(|ui| {
                     ui.heading("Settings");
                 });
-    
-                //ui.add_space(10.0);
-    
+
                 ui.horizontal(|ui| {
                     self.add_reflector(ui);
                     self.add_rotors(ui);
                 });
-    
+
                 ui.add_space(10.0);
-    
+
                 self.add_plugboard(ui);
-    
+
                 ui.add_space(10.0);
-    
+
                 ui.vertical_centered(|ui| {
                     if ui.button("Apply Settings").clicked() {
                         self.apply_settings();
@@ -301,6 +293,29 @@ impl App for EnigmaGui {
 }
 
 fn main() {
-    let window_options = NativeOptions::default();
+    let window_options = NativeOptions {
+        always_on_top: false,
+        maximized: false,
+        decorated: true,
+        drag_and_drop_support: true,
+        icon_data: None,
+        initial_window_pos: None,
+        initial_window_size: Option::from(egui::Vec2::new(810 as f32, 600 as f32)),
+        min_window_size: None,
+        max_window_size: None,
+        resizable: false,
+        transparent: true,
+        vsync: true,
+        multisampling: 0,
+        depth_buffer: 0,
+        stencil_buffer: 0,
+        fullscreen: false,
+        hardware_acceleration: eframe::HardwareAcceleration::Preferred,
+        renderer: eframe::Renderer::Glow,
+        follow_system_theme: false,
+        default_theme: eframe::Theme::Dark,
+        run_and_return: true,
+    };
+
     run_native("Enigma", window_options, Box::new(|cc| Box::new(EnigmaGui::new(cc))));
 }
