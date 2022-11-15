@@ -98,11 +98,11 @@ fn main() -> Result<()> {
         rotors.push(rotor);
     }
 
-    let mut plugs: Vec<(char, char)> = Vec::new();
+    let mut plugs: Vec<[char; 2]> = Vec::new();
 
     for i in 0..plug_args.len() {
         let mut pair = plug_args[i].chars();
-        plugs.push((pair.next().unwrap(), pair.next().unwrap()));
+        plugs.push([pair.next().unwrap(), pair.next().unwrap()]);
     }
 
     let plugboard = Plugboard::new(&plugs).unwrap();

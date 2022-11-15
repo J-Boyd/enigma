@@ -167,7 +167,7 @@ mod test {
         let input = String::from("AAAAA");
         let mut output;
 
-        let plugs = vec![('A', 'Z'), ('B', 'Y'), ('C', 'X'), ('D', 'W'), ('E', 'V'), ('F', 'U'), ('G', 'T'), ('H', 'S'), ('I', 'R'), ('J', 'Q')];
+        let plugs = vec![['A', 'Z'], ['B', 'Y'], ['C', 'X'], ['D', 'W'], ['E', 'V'], ['F', 'U'], ['G', 'T'], ['H', 'S'], ['I', 'R'], ['J', 'Q']];
 
         {
             let mut rotors = Vec::new();

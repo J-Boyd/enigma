@@ -9,8 +9,8 @@ struct EnigmaGui {
     rotor_type: [RotorType; 3],
     rotor_ring: [usize; 3],
     rotor_key: [char; 3],
-    current_plug_pair: (char, char),
-    plugs: Vec<(char, char)>,
+    current_plug_pair: [char; 2],
+    plugs: Vec<[char; 2]>,
     enigma: Enigma,
 }
 
@@ -26,7 +26,7 @@ impl EnigmaGui {
         rotors.push(Rotor::new(RotorType::II, 'A', 1).unwrap());
         rotors.push(Rotor::new(RotorType::III, 'A', 1).unwrap());
 
-        let plugs: Vec<(char, char)> = Vec::new();
+        let plugs: Vec<[char; 2]> = Vec::new();
         let plugboard = Plugboard::new(&plugs).unwrap();
 
         EnigmaGui {
@@ -36,7 +36,7 @@ impl EnigmaGui {
             rotor_type: [RotorType::I, RotorType::II, RotorType::III],
             rotor_ring: [1, 1, 1],
             rotor_key: ['A', 'A', 'A'],
-            current_plug_pair: ('A', 'Z'),
+            current_plug_pair: ['A', 'Z'],
             plugs: Vec::new(),
             enigma: Enigma::new(ReflectorType::B, rotors, plugboard),
         }
@@ -57,7 +57,7 @@ impl EnigmaGui {
 
     fn is_plug_available(&self, c: char) -> bool {
         for p in &self.plugs {
-            if p.0 == c || p.1 == c {
+            if p[0] == c || p[1] == c {
                 return false;
             }
         }
@@ -84,7 +84,7 @@ impl EnigmaGui {
         None
     }
 
-    fn remove_plug_pair(&mut self, pair: (char, char)) {
+    fn remove_plug_pair(&mut self, pair: [char; 2]) {
         let mut index: Option<usize> = None;
 
         for i in 0..self.plugs.len() {
@@ -181,11 +181,11 @@ impl EnigmaGui {
     fn update_selected_plugs(&mut self) {
         // Update the current characters in the plug selection comboboxes to an available letter.
         if let Some(c) = self.next_available_plug(false) {
-            self.current_plug_pair.0 = c;
+            self.current_plug_pair[0] = c;
         }
 
         if let Some(c) = self.next_available_plug(true) {
-            self.current_plug_pair.1 = c;
+            self.current_plug_pair[1] = c;
         }
     }
 
@@ -199,23 +199,23 @@ impl EnigmaGui {
                 ui.group(|ui| {
                     ui.horizontal(|ui| {
                         egui::ComboBox::from_id_source("plugboard-combobox1")
-                            .selected_text(self.current_plug_pair.0.to_string())
+                            .selected_text(self.current_plug_pair[0].to_string())
                             .width(25.0)
                             .show_ui(ui, |ui| {
                                 for c in 'A'..='Z' {
                                     if ui.add_enabled(self.is_plug_available(c), egui::SelectableLabel::new(false, c.to_string())).clicked() {
-                                        self.current_plug_pair.0 = c;
+                                        self.current_plug_pair[0] = c;
                                     }
                                 }
                             });
 
                         egui::ComboBox::from_id_source("plugboard-combobox2")
-                            .selected_text(self.current_plug_pair.1.to_string())
+                            .selected_text(self.current_plug_pair[1].to_string())
                             .width(25.0)
                             .show_ui(ui, |ui| {
                                 for c in 'A'..='Z' {
                                     if ui.add_enabled(self.is_plug_available(c), egui::SelectableLabel::new(false, c.to_string())).clicked() {
-                                        self.current_plug_pair.1 = c;
+                                        self.current_plug_pair[1] = c;
                                     }
                                 }
                             });
@@ -231,10 +231,10 @@ impl EnigmaGui {
                     }
                 });
 
-                let mut clicked_pairs: Vec<(char, char)> = Vec::new();
+                let mut clicked_pairs: Vec<[char; 2]> = Vec::new();
 
                 for p in &self.plugs {
-                    if ui.button(format!("{0} {1}", p.0, p.1)).clicked() {
+                    if ui.button(format!("{0} {1}", p[0], p[1])).clicked() {
                         clicked_pairs.push(*p);
                     }
                 }
@@ -254,32 +254,32 @@ impl EnigmaGui {
 
 impl App for EnigmaGui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            ui.vertical_centered(|ui| {
-                ui.heading("Settings");
-            });
-
-            ui.add_space(10.0);
-
-            ui.horizontal(|ui| {
-                self.add_reflector(ui);
-                self.add_rotors(ui);
-            });
-
-            ui.add_space(10.0);
-
-            self.add_plugboard(ui);
-
-            ui.add_space(10.0);
-
-            ui.vertical_centered(|ui| {
-                if ui.button("Apply Settings").clicked() {
-                    self.apply_settings();
-                }
-            });
-        });
-
         egui::CentralPanel::default().show(ctx, |ui| {
+            ui.group(|ui| {
+                ui.vertical_centered(|ui| {
+                    ui.heading("Settings");
+                });
+    
+                //ui.add_space(10.0);
+    
+                ui.horizontal(|ui| {
+                    self.add_reflector(ui);
+                    self.add_rotors(ui);
+                });
+    
+                ui.add_space(10.0);
+    
+                self.add_plugboard(ui);
+    
+                ui.add_space(10.0);
+    
+                ui.vertical_centered(|ui| {
+                    if ui.button("Apply Settings").clicked() {
+                        self.apply_settings();
+                    }
+                });
+            });
+
             ui.add_space(20.0);
 
             ui.group(|ui| {
