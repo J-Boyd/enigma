@@ -4,6 +4,7 @@ use enigma::{ReflectorType, Rotor, RotorType, Plugboard, Enigma};
 
 struct EnigmaGui {
     input: String,
+    previous_input: String,
     output: String,
     reflector_type: ReflectorType,
     rotor_type: [RotorType; 3],
@@ -31,6 +32,7 @@ impl EnigmaGui {
 
         EnigmaGui {
             input: String::new(),
+            previous_input: String::from("Type a message here"),
             output: String::new(),
             reflector_type: ReflectorType::B,
             rotor_type: [RotorType::I, RotorType::II, RotorType::III],
@@ -277,8 +279,14 @@ impl App for EnigmaGui {
             ui.group(|ui| {
                 ui.heading("Input");
 
-                if ui.add_sized([ui.available_width(), 0.0], egui::TextEdit::singleline(&mut self.input)).lost_focus() {
-                    self.output = self.enigma.encrypt(&self.input.to_uppercase()).unwrap();
+                if ui.add_sized([ui.available_width(), 0.0], egui::TextEdit::singleline(&mut self.input).hint_text(&self.previous_input)).lost_focus() {
+                    self.output = match self.enigma.encrypt(&self.input.to_uppercase()) {
+                        Ok(s) => s,
+                        Err(e) => format!("[ERROR]: {}", e.to_string()),
+                    };
+
+                    self.previous_input = self.input.clone();
+                    self.input.clear();
                 }
             });
 
