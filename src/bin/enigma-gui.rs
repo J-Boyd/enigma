@@ -287,6 +287,11 @@ impl App for EnigmaGui {
 
                     self.previous_input = self.input.clone();
                     self.input.clear();
+
+                    let keys = self.enigma.get_keys();
+                    self.rotor_key[0] = keys[0];
+                    self.rotor_key[1] = keys[1];
+                    self.rotor_key[2] = keys[2];
                 }
             });
 

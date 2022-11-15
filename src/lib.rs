@@ -81,6 +81,16 @@ impl Enigma {
 
         result
     }
+
+    pub fn get_keys(&self) -> Vec<char> {
+        let mut v: Vec<char> = Vec::with_capacity(self.rotors.len());
+
+        for r in &self.rotors {
+            v.push(r.get_key());
+        }
+
+        v
+    }
 }
 
 #[cfg(test)]

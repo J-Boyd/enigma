@@ -28,7 +28,7 @@ pub struct Rotor {
 }
 
 impl Rotor {
-    pub fn new(rotor_type: RotorType, position: char, ring_setting: usize) -> Result<Rotor> {
+    pub fn new(rotor_type: RotorType, key: char, ring_setting: usize) -> Result<Rotor> {
         let wiring = Rotor::get_rotor_wiring(&rotor_type);
         let wiring_inverse = Rotor::get_rotor_wiring_inverse(&wiring);
 
@@ -37,7 +37,7 @@ impl Rotor {
         }
 
         let rotor = Rotor {
-            position: utils::get_position_from_char(position)?,
+            position: utils::get_position_from_char(key)?,
             ring_setting: ring_setting - 1,
             turnover: match rotor_type {
                 RotorType::I => vec![17], // R
@@ -54,6 +54,10 @@ impl Rotor {
         };
 
         Ok(rotor)
+    }
+
+    pub fn get_key(&self) -> char {
+        utils::get_char_from_position(self.position).unwrap()
     }
 
     fn get_rotor_wiring(rotor_type: &RotorType) -> [usize; 26] {
