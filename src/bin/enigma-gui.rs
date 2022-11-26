@@ -246,6 +246,21 @@ impl EnigmaGui {
             });
         }).response
     }
+
+    fn encrypt(&mut self) {
+        self.output = match self.enigma.encrypt(&self.input.to_uppercase()) {
+            Ok(s) => s,
+            Err(e) => format!("[ERROR]: {}", e.to_string()),
+        };
+
+        self.previous_input = self.input.clone();
+        self.input.clear();
+
+        let keys = self.enigma.get_keys();
+        self.rotor_key[0] = keys[0];
+        self.rotor_key[1] = keys[1];
+        self.rotor_key[2] = keys[2];
+    }
 }
 
 impl App for EnigmaGui {
@@ -278,28 +293,20 @@ impl App for EnigmaGui {
 
             ui.group(|ui| {
                 ui.heading("Input");
+                ui.add_sized([ui.available_width(), 0.0], egui::TextEdit::multiline(&mut self.input).hint_text(&self.previous_input));
 
-                if ui.add_sized([ui.available_width(), 0.0], egui::TextEdit::singleline(&mut self.input).hint_text(&self.previous_input)).lost_focus() {
-                    self.output = match self.enigma.encrypt(&self.input.to_uppercase()) {
-                        Ok(s) => s,
-                        Err(e) => format!("[ERROR]: {}", e.to_string()),
-                    };
-
-                    self.previous_input = self.input.clone();
-                    self.input.clear();
-
-                    let keys = self.enigma.get_keys();
-                    self.rotor_key[0] = keys[0];
-                    self.rotor_key[1] = keys[1];
-                    self.rotor_key[2] = keys[2];
-                }
+                ui.vertical_centered(|ui| {
+                    if ui.button("Encrypt").clicked() {
+                        self.encrypt();
+                    }
+                });
             });
 
             ui.add_space(20.0);
 
             ui.group(|ui| {
                 ui.heading("Output");
-                ui.add_sized(ui.available_size(), egui::TextEdit::singleline(&mut self.output.as_str()));
+                ui.add_sized(ui.available_size(), egui::TextEdit::multiline(&mut self.output.as_str()));
             });
         });
     }
