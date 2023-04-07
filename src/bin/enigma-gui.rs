@@ -312,7 +312,7 @@ impl App for EnigmaGui {
     }
 }
 
-fn main() {
+fn main() -> eframe::Result<()> {
     let window_options = NativeOptions {
         always_on_top: false,
         maximized: false,
@@ -335,7 +335,11 @@ fn main() {
         follow_system_theme: false,
         default_theme: eframe::Theme::Dark,
         run_and_return: true,
+        mouse_passthrough: false,
+        event_loop_builder: None,
+        shader_version: None,
+        centered: true,
     };
 
-    run_native("Enigma", window_options, Box::new(|cc| Box::new(EnigmaGui::new(cc))));
+    run_native("Enigma", window_options, Box::new(|cc| Box::new(EnigmaGui::new(cc))))
 }
