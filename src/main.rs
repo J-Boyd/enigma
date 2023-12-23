@@ -4,95 +4,87 @@ use enigma::Reflector;
 use enigma::Plugboard;
 
 use std::io::{self, Write};
-use clap::{Arg, App};
+use clap::Parser;
 use anyhow::Result;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about)]
+struct Args
+{
+    #[arg(long, value_parser = reflector_parser, required = true,
+        help = "Sets the reflector type.")]
+    reflector: String,
+
+    #[arg(long, value_parser = rotor_parser, num_args = 3, value_name = "ROTOR", required = true,
+        help = "Sets the rotor order (Walzenlage), starting in the leftmost position.")]
+    rotors: Vec<String>,
+
+    #[arg(long, value_parser = clap::value_parser!(u32).range(1..=26), num_args = 3, value_name = "SETTING", required = true,
+        help = "Sets the ring settings for the rotors (Ringstellung). Valid values are numbers in the range 1 to 26.")]
+    rings: Vec<u32>,
+
+    #[arg(long, value_parser = key_parser, required = true,
+        help = "Sets the intial positions for the rotors (Grundstellung/Kenngruppen). Valid values are letters in the range A to Z.")]
+    key: String,
+
+    #[arg(long, value_parser = plug_parser, required = false, num_args = 0..=10, value_name = "PLUG", 
+        help = "Sets the plug connections on the plugboard (Steckerverbindungen). Valid values are pairs of letters such as 'AL' for linking the letter 'A' to the letter 'L'.")]
+    plugs: Vec<String>
+}
+
+fn reflector_parser(s: &str) -> Result<String, String> {
+    let reflectors = ["Beta", "Gamma", "A", "B", "C", "ThinB", "ThinC", "ETW"];
+
+    if reflectors.contains(&s) {
+        return Ok(s.to_string());
+    }
+
+    Err(format!("Must be one of {:?}", reflectors))
+}
+
+fn rotor_parser(s: &str) -> Result<String, String> {
+    let rotors = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+
+    if rotors.contains(&s) {
+        return Ok(s.to_string());
+    }
+
+    Err(format!("Must be one of {:?}", rotors))
+}
+
+fn key_parser(s: &str) -> Result<String, String> {
+    if s.len() > 3 {
+        return Err(format!("Too many key values. 3 keys are required."));
+    }
+
+    if s.len() < 3 {
+        return Err(format!("Not enough key values. 3 keys are required."));
+    }
+
+    Ok(s.to_string())
+}
+
+fn plug_parser(s: &str) -> Result<String, String> {
+    if s.len() != 2 {
+        return Err(format!("Not a valid plug pair."))
+    }
+
+    Ok(s.to_string())
+}
+
 fn main() -> Result<()> {
-    let matches = App::new("Enigma")
-                    .version("0.1")
-                    .author("Jonathan Boyd")
-                    .about("A rust implementation of the M3 Enigma machine.")
-                    .arg(Arg::new("reflector")
-                        .short('R')
-                        .long("reflector")
-                        .value_name("REFLECTOR")
-                        .possible_values(&["Beta", "Gamma", "A", "B", "C", "ThinB", "ThinC", "ETW"])
-                        .help("Sets the reflector type.")
-                        .takes_value(true)
-                        .multiple_occurrences(false)
-                        .multiple_values(false)
-                        .required(true))
-                    .arg(Arg::new("rotors")
-                        .short('r')
-                        .long("rotors")
-                        .value_name("ROTORS")
-                        .possible_values(&["I", "II", "III", "IV", "V", "VI", "VII", "VIII"])
-                        .help("Sets the rotor order (Walzenlage), starting in the leftmost position.")
-                        .takes_value(true)
-                        .multiple_occurrences(false)
-                        .multiple_values(true)
-                        .min_values(3)
-                        .max_values(3)
-                        .required(true))
-                    .arg(Arg::new("rings")
-                        .short('s')
-                        .long("ring")
-                        .value_name("SETTING")
-                        .help("Sets the ring settings for the rotors (Ringstellung). Valid values are numbers in the range 1 to 26.")
-                        .takes_value(true)
-                        .multiple_occurrences(false)
-                        .multiple_values(true)
-                        .min_values(3)
-                        .max_values(3)
-                        .required(true))
-                    .arg(Arg::new("key")
-                        .short('k')
-                        .long("key")
-                        .value_name("KEY")
-                        .help("Sets the intial positions for the rotors (Grundstellung/Kenngruppen). Valid values are letters in the range A to Z.")
-                        .takes_value(true)
-                        .multiple_occurrences(false)
-                        .multiple_values(true)
-                        .min_values(3)
-                        .max_values(3)
-                        .required(true))
-                    .arg(Arg::new("plugs")
-                        .short('p')
-                        .long("plugs")
-                        .value_name("PLUGS")
-                        .help("Sets the plug connections on the plugboard (Steckerverbindungen).")
-                        .long_help("Sets the plug connections on the plugboard (Steckerverbindungen). Valid values are pairs of letters such as 'AL' for linking the letter 'A' to the letter 'L'.")
-                        .takes_value(true)
-                        .multiple_occurrences(false)
-                        .multiple_values(true)
-                        .max_values(10))
-                    .get_matches();
+    let args = Args::parse();
+    
+    println!("{:?}", args);
 
-    let reflector_arg = matches.value_of("reflector").unwrap();
-    let reflector = Reflector::get_reflector_type_from_string(&reflector_arg).unwrap();
-
-    let rotor_args: Vec<&str> = matches.values_of("rotors").unwrap().collect();
-    let ring_settings: Vec<&str> = matches.values_of("rings").unwrap().collect();
-    let key: Vec<&str> = matches.values_of("key").unwrap().collect();
-
-    let plug_args = match matches.values_of("plugs") {
-        Some(p) => p.collect(),
-        None => Vec::new(),
-    };
-
-    println!("Reflector: {:?}", reflector);
-    println!("Rotors: {:?}", rotor_args);
-    println!("Ring Settings: {:?}", ring_settings);
-    println!("Key: {:?}", key);
-    println!("Plugs: {:?}", plug_args);
-
+    let reflector = Reflector::get_reflector_type_from_string(&args.reflector)?;
     let mut rotors: Vec<Rotor> = Vec::new();
 
-    for i in 0..rotor_args.len() {
+    for i in 0..args.rotors.len() {
 
-        let rotor_type = Rotor::get_rotor_type_from_string(&rotor_args[i]).unwrap();
-        let position = key[i].chars().nth(0).unwrap();
-        let ring = ring_settings[i].parse::<usize>().unwrap();
+        let rotor_type = Rotor::get_rotor_type_from_string(&args.rotors[i])?;
+        let position = args.key.chars().nth(i).unwrap();
+        let ring = args.rings[i] as usize;
 
         let rotor = Rotor::new(rotor_type, position, ring)?;
         rotors.push(rotor);
@@ -100,12 +92,12 @@ fn main() -> Result<()> {
 
     let mut plugs: Vec<[char; 2]> = Vec::new();
 
-    for i in 0..plug_args.len() {
-        let mut pair = plug_args[i].chars();
+    for i in 0..args.plugs.len() {
+        let mut pair = args.plugs[i].chars();
         plugs.push([pair.next().unwrap(), pair.next().unwrap()]);
     }
 
-    let plugboard = Plugboard::new(&plugs).unwrap();
+    let plugboard = Plugboard::new(&plugs)?;
     let mut enigma = Enigma::new(reflector, rotors, plugboard);
 
     let stdin = io::stdin();
